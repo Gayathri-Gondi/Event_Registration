@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <?php require_once("../connection.php");
-//session used for users to stay logged in until log out
+//session used for users to stay logged in until log out 
 if (!isset($_SESSION["login_sess"])) {
     header("location:../userlogin.php");
 }
@@ -91,55 +91,75 @@ if ($RES = mysqli_fetch_array($findresult)) {
                 </li>
             </ul>
     </div>
+
     <div class="page-content p-5" id="content">
         <button id="sidebarCollapse" type="button" class="btn btn-light bg-white rounded-pill shadow-sm px-4 mb-4"><i
                 class="fa fa-bars mr-2"></i><small class="text-uppercase font-weight-bold">Menu</small></button>
-        <h2 class="display-4 text-white">Add Events</h2>
-
-        <section style="padding-top:30px">
-            <div class="w-50   text-white">
+        <h2 class="display-4 text-white">Admin Requests</h2>
+        <br>
+        <div class="container">
+            <div class="row gy-4 py-2">
                 <?php
-                //inserting all the event details into database if button is pressed
-                if (isset($_POST["adde"])) {
-                    extract($_POST);
-                    $pfp = time() . '_' . $_FILES["img"]["name"];
-                    $target = 'uploads/' . $pfp;
-                    if (!empty($_POST['description'])) {
-                        $Result = mysqli_query($dbc, "INSERT into Events (id, name, description, date, img) values(NULL, '$ename', '$description', '$date', '$pfp')");
+                if (isset($_POST['accept'])) {
+                    $em = $_POST['hide'];
+                    $Resu = mysqli_query($dbc, "INSERT INTO admin (id, email,status) VALUES (NULL, '$em', 'Accepted')");
+                }
+                if ($Resu) {
+                    header("refresh");
+                }
 
-                        if (!$Result) {
-                            printf("Errormessage: %s\n", mysqli_error($dbc));
-                        } else {
-                            copy($_FILES['img']["tmp_name"], $target);
-                            echo 'added successfully';
-                        }
-                    }
+                if (isset($_POST['reject'])) {
+                    $em = $_POST['hide'];
+                    $Resu = mysqli_query($dbc, "INSERT INTO admin (id, email, status) VALUES (NULL, '$em', 'Rejected')");
+                }
+                if ($Resu) {
+                    header("refresh");
                 }
                 ?>
-                <!-- Form to get event details -->
-                <form action="" method="POST" enctype="multipart/form-data">
-                    <div class="form-group">
-                        <label> Event Name : </label>
-                        <input type="text" name="ename" value="" class="form-control" required>
-                    </div>
-                    <div class="form-group">
-                        <label> Description : </label>
-                        <textarea name="description" class="form-control" required></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label> Date Of Event : </label>
-                        <input type="date" name="date" value="" class="form-control" required>
-                    </div>
-                    <div class="form-group">
-                        <label> Upload Image If Any : </label>
-                        <input type="file" name="img" value="" class="form-control">
-                    </div>
-                    <div class="text-center">
-                        <button name="adde" class="btn btn-new btn-block" class="py-2"> Add </button>
-                    </div>
-                </form>
+                <div class="row px-3 " style="height:50px">
+                
+                    <?php
+                    //retrieving and displaying the users who registered for this specific event
+                    $Result = mysqli_query($dbc, "SELECT * FROM Users where type='admin' and email not in (SELECT email from admin)");
+                    while ($row = mysqli_fetch_array($Result)) {
+                        ?>
+                        <?php $uid = $row['id'];
+                        $em = $row['email']; ?>
+                        <div class="col-12 mt-3 px-2">
+                            <div class="card">
+                                <div class="card-horizontal">
+                                    <a href="profiledetails.php?uid=<?php echo $uid ?>&eid=<?php echo $sub ?>"
+                                        style="color:#9d7eb9">
+                                        <div class="img-square-wrapper">
+                                            <img style="width: 120px;height: 120px;object-fit: cover;" class=""
+                                                src="../profiles/<?php echo $row['img']; ?>" alt="Card image cap">
+                                        </div>
+                                        <div class="card-body">
+                                            <h4 class="card-title">
+                                                <?php echo $row['fname'], " ", $row['lname']; ?>
+                                            </h4>
+                                    </a>
+                                    <!-- buttons form used to reject or accept users -->
+                                    <form method="POST">
+                                        <input type="hidden" name="hide" id="hide" value="<?php echo $row['email'] ?>" />
+                                        <button name="accept" value="accept" style="width:120px"
+                                            class="btn btn-new">Accept</button>
+                                        <button name="reject" value="reject" style="width:120px"
+                                            class="btn btn-new">Reject</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+</div>
+                    <?php } ?>
+                
             </div>
-        </section>
+            <br>
+            <br>
+            <br>
+
+        </div>
+    </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>

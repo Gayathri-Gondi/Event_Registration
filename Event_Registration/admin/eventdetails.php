@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <?php require_once("../connection.php");
+include "../user/mail.php";
 //session used for users to stay logged in until log out
 if (!isset($_SESSION["login_sess"])) {
     header("location:../userlogin.php");
@@ -10,12 +11,12 @@ if ($RES = mysqli_fetch_array($findresult)) {
     $fname = $RES['fname'];
     $lname = $RES['lname'];
     $email = $RES['email'];
-    $img = $RES['img']; 
+    $img = $RES['img'];
 }
 ?>
 <?php
 //getting the event id from account.php to print details of the clicked event
-$sub = $_GET['sub'];?>
+$sub = $_GET['sub']; ?>
 <html>
 
 <head>
@@ -65,16 +66,16 @@ $sub = $_GET['sub'];?>
                 </a>
             </li>
             <li class="nav-item">
-                <a href="regusers.php" class="nav-link text-dark bg-light">
+                <a href="adreq.php" class="nav-link text-dark bg-light">
                     <i class="fas fa-address-card mr-3 text-primary fa-fw"></i>
-                    Registered Users
+                    Admin Requests
                 </a>
             </li>
 
             <li class="nav-item">
                 <a href="acceptedusers.php" class="nav-link text-dark bg-light">
                     <i class="fas fa-user mr-3 text-primary fa-fw"></i>
-                    Accepted Users
+                    Current Admins
                 </a>
             </li>
 
@@ -82,7 +83,14 @@ $sub = $_GET['sub'];?>
                 <li class="nav-item">
                     <a href="addevents.php" class="nav-link text-dark bg-light">
                         <i class="fas fa-plus mr-3 text-primary fa-fw"></i>
-                        Add/delete Events
+                        Add Events
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="myprofile.php" class="nav-link text-dark bg-light">
+                        <i class="fas fa-user mr-3 text-primary fa-fw"></i>
+                        Your Profile
                     </a>
                 </li>
 
@@ -96,6 +104,9 @@ $sub = $_GET['sub'];?>
     </div>
     <?php
     //if button is pressed, the the user gets inserted into database as accepted
+    /*$uem = $_POST['hide'];
+        $em = $_POST['hidem'];
+        $Resu = mysqli_query($dbc, "INSERT INTO accepted (id, email, useremail,eid, status) VALUES (NULL, '$em', '$uem', '$sub', */
     if (isset($_POST['accept'])) {
         $em = $_POST['hide'];
         $Resu = mysqli_query($dbc, "INSERT INTO accepted (id, email, eid, status) VALUES (NULL, '$em', '$sub', 'Accepted')");
@@ -104,9 +115,24 @@ $sub = $_GET['sub'];?>
         $done = 2;
     }
     if ($done) {
+        /*
         $em = $_POST['hide'];
-        $pro = mysqli_query($dbc, "DELETE from registered_users where email='$em' and eid='$sub'");
-        header("refresh");
+        $pro = mysqli_query($dbc, "DELETE from registered_users where email='$em' and eid='$sub'"); */
+
+        $ro = mysqli_query($dbc, "SELECT * from Events where id = '$sub'");
+        $rob = mysqli_query($dbc, "SELECT * from Registered_users where useremail = '$em'");
+        $rowsee = mysqli_fetch_array($rob);
+        $rowse = mysqli_fetch_array($ro);
+        $to = $rowsee['email'];
+        $subject = "Update on your event " . $rowse['name'] . " registration";
+        $message = "Congratulations! You successfully got accepted for the event " . $rowse['name'] . " which is taking place on " . $rowse['date'] . ". We are excited to see you at the event! Thank you for registering";
+        if (send_mail($to, $subject, $message)) {
+            header("refresh");
+        } else {
+            header("refresh");
+        }
+
+
     }
     ?>
     <?php
@@ -119,9 +145,21 @@ $sub = $_GET['sub'];?>
         $donee = 2;
     }
     if ($donee) {
-        $em = $_POST['hide'];
-        $proo = mysqli_query($dbc, "DELETE from registered_users where email='$em' and eid='$sub'");
-        header("refresh");
+        /* $em = $_POST['hide'];
+        $proo = mysqli_query($dbc, "DELETE from registered_users where email='$em' and eid='$sub'"); */
+
+        $ro = mysqli_query($dbc, "SELECT * from Events where id = '$sub'");
+        $rob = mysqli_query($dbc, "SELECT * from Registered_users where useremail = '$em'");
+        $rowsee = mysqli_fetch_array($rob);
+        $rowse = mysqli_fetch_array($ro);
+        $to = $rowsee['email'];
+        $subject = "Update on your event " . $rowse['name'] . " registration";
+        $message = "We are very sorry to inform you that your registration for the event " . $rowse['name'] . " which is taking place on " . $rowse['date'] . " is unsuccessful! However there are many more events which are going to take place. so, please stay engaged on our website for future events, Thank you for showing interest";
+        if (send_mail($to, $subject, $message)) {
+            header("refresh");
+        } else {
+            header("refresh");
+        }
     }
     ?>
     <div class="page-content p-5" id="content">
@@ -131,12 +169,26 @@ $sub = $_GET['sub'];?>
         <br>
         <div class="container">
             <div class="row gy-4">
+
                 <div class="col">
+<?php
+if (isset($_POST['bck'])) {
+    header("location:account.php");
+} ?>
+<div style="text-align: right;">
+    <form method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="hide" id="hide" value="<?php echo $row['id'] ?>" />
+        <button name="bck" class="bck btn btn-new my-2"><i class="fa fa-arrow-left"></i>
+            Back</button>
+        <br>
+    </form>
+</div>
                     <?php
                     //Retreiving and displaying event details
                     $Result = mysqli_query($dbc, "SELECT * FROM Events where id = {$sub}");
                     if ($row = mysqli_fetch_array($Result)) { ?>
                         <?php $sub = $row['id']; ?>
+
                         <div class="card  h-100" style=" width:550px">
                             <img style="height:35%;" src="uploads/<?php echo $row['img']; ?>" class="card-img-top"
                                 alt="...">
@@ -154,20 +206,22 @@ $sub = $_GET['sub'];?>
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="col">
                         <?php
                         //retrieving and displaying the users who registered for this specific event
-                        $Result = mysqli_query($dbc, "SELECT * FROM Users where email in (select email from registered_users where eid = '$sub')");
+                        $Result = mysqli_query($dbc, "SELECT * FROM Users where email in (select useremail from registered_users where eid = '$sub') and email not in (select email from accepted where eid = '$sub')");
                         while ($row = mysqli_fetch_array($Result)) {
                             ?>
                             <?php $uid = $row['id'];
                             $em = $row['email']; ?>
                             <div class="row" style="height:50px">
+
                                 <div class="col-12 mt-3">
                                     <div class="card">
                                         <div class="card-horizontal">
-                                            <a href="profiledetails.php?uid=<?php echo $uid ?>" style="color:#9d7eb9">
+                                            <a href="profiledetails.php?uid=<?php echo $uid ?>&eid=<?php echo $sub ?>"
+                                                style="color:#9d7eb9">
                                                 <div class="img-square-wrapper">
                                                     <img style="width: 120px;height: 120px;object-fit: cover;" class=""
                                                         src="../profiles/<?php echo $row['img']; ?>" alt="Card image cap">
@@ -179,7 +233,8 @@ $sub = $_GET['sub'];?>
                                             </a>
                                             <!-- buttons form used to reject or accept users -->
                                             <form method="POST">
-                                                <input type="hidden" name="hide" id="hide" value="<?php echo $row['email'] ?>" />
+                                                <input type="hidden" name="hide" id="hide"
+                                                    value="<?php echo $row['email'] ?>" />
                                                 <button name="accept" value="accept" style="width:120px"
                                                     class="btn btn-new">Accept</button>
                                                 <button name="reject" value="reject" style="width:120px"
@@ -191,16 +246,17 @@ $sub = $_GET['sub'];?>
                             </div>
                         </div>
                         <br>
-<br>
-<br>
-<br>
+                        <br>
+                        <br>
+                        <br>
                     <?php } ?>
                 </div>
-                </div>
-            <?php }
+            </div>
+        </div>
+    <?php }
 
                     ?>
-        </div>
+    </div>
     </div>
     </div>
     </div>

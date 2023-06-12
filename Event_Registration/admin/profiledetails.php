@@ -16,7 +16,8 @@ if ($RES = mysqli_fetch_array($findresult)) {
 }
 ?>
 <?php
-$uid = $_GET['uid']; ?>
+$uid = $_GET['uid'];
+$eid = $_GET['eid']; ?>
 <html>
 
 <head>
@@ -41,6 +42,7 @@ $uid = $_GET['uid']; ?>
 </head>
 
 <body>
+    <!-- sidebar -->
     <div class="vertical-nav bg-white" style="background-color: #f9f9f9 !important;" id="sidebar">
         <div class="py-4 px-3 mb-4 bg-light">
             <div class="mediaicon d-flex align-items-center">
@@ -65,16 +67,16 @@ $uid = $_GET['uid']; ?>
                 </a>
             </li>
             <li class="nav-item">
-                <a href="regusers.php" class="nav-link text-dark bg-light">
+                <a href="adreq.php" class="nav-link text-dark bg-light">
                     <i class="fas fa-address-card mr-3 text-primary fa-fw"></i>
-                    Registered Users
+                    Admin Requests
                 </a>
             </li>
 
             <li class="nav-item">
                 <a href="acceptedusers.php" class="nav-link text-dark bg-light">
                     <i class="fas fa-user mr-3 text-primary fa-fw"></i>
-                    Accepted Users
+                    Current Admins
                 </a>
             </li>
 
@@ -82,7 +84,14 @@ $uid = $_GET['uid']; ?>
                 <li class="nav-item">
                     <a href="addevents.php" class="nav-link text-dark bg-light">
                         <i class="fas fa-plus mr-3 text-primary fa-fw"></i>
-                        Add/delete Events
+                        Add Events
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="myprofile.php" class="nav-link text-dark bg-light">
+                        <i class="fas fa-user mr-3 text-primary fa-fw"></i>
+                        Your Profile
                     </a>
                 </li>
 
@@ -100,35 +109,86 @@ $uid = $_GET['uid']; ?>
         <h2 class="display-4 text-white">Events DashBoard</h2>
         <br>
         <div class="container">
-            <div class="row gy-4">
-                <div class="col">
-                    <?php
-                    $Result = mysqli_query($dbc, "SELECT * FROM users where id= {$uid}");
-                    if ($row = mysqli_fetch_array($Result)) { ?>
-                        <?php $sub = $row['id']; ?>
-                        <div class="card  h-100" style=" width:550px">
-                            <img style="height:35%;" src="../profiles/<?php echo $row['img']; ?>" class="card-img-top"
-                                alt="...">
+            <div class="col">
+                <?php
+                if (isset($_POST['bck'])) {
+                    header("location:eventdetails.php?sub=$eid");
+                } ?>
+                <div style="text-align: right;">
+                    <form method="POST" enctype="multipart/form-data">
+                        <input type="hidden" name="hide" id="hide" value="<?php echo $row['id'] ?>" />
+                        <button name="bck" class="bck btn btn-new my-2"><i class="fa fa-arrow-left"></i>
+                            Back</button>
+                        <br>
+                    </form>
+                </div>
+                <?php
+                $Result = mysqli_query($dbc, "SELECT * FROM Users where id= {$uid}");
+                if ($row = mysqli_fetch_array($Result)) { ?>
+
+                    <div class="card">
+                        <div class="card-horizontal">
+                            <div class="img-square-wrapper">
+                                <img class="iconimg mr-3 rounded-circle img-thumbnail shaadow-sm my-1 mx-1"
+                                    style="width: 120px;border-radius: 50%;height: 120px;object-fit: cover;" class=""
+                                    src="../profiles/<?php echo $row['img']; ?>" alt="Card image cap">
+                            </div>
                             <div class="card-body">
                                 <h4 class="card-title">
-                                    <?php echo $row['fname']; ?>
+                                    <?php echo $row['fname'], " ", $row['lname']; ?>
                                 </h4>
                                 <p class="card-text">
-                                    <?php echo $row['lname']; ?>
+                                    <?php echo "Email : " . $row['email']; ?>
                                 </p>
-                                <h5 class="card-title" style="color:#7d54a4">
-                                    Event Date :
-                                    <?php echo $row['email']; ?>
-                                </h5>
+                                <p class="card-text">
+                                    <?php echo "Contact Number : " . $row['number']; ?>
+                                </p>
+                                <?php
+                                $bday = new DateTime($row['dob']); // Your date of birth
+                                $today = new Datetime(date('y.m.d'));
+                                $diff = $today->diff($bday);
+                                ?>
+                                <p class="card-text">
+                                    <?php echo "Date Of Birth : " . $row['dob']; ?>
+                                </p>
+                                <p class="card-text">
+                                    <?php echo "Age : " . $diff->y; ?>
+                                </p>
                             </div>
+                        </div>
+                        <?php
+                        $sub = $row['email'];
+                        $cou = mysqli_query($dbc, "SELECT count('1') FROM accepted where email = '$sub' and status = 'Accepted'");
+                        $cow = mysqli_fetch_array($cou);
+                        $t = $cow[0];
+                        $aou = mysqli_query($dbc, "SELECT count('1') FROM accepted where email = '$sub' and status = 'Rejected'");
+                        $aow = mysqli_fetch_array($aou);
+                        $a = $aow[0];
+                        $rou = mysqli_query($dbc, "SELECT count('1') FROM registered_users where email = '$sub'");
+                        $ow = mysqli_fetch_array($rou);
+                        $r = $ow[0];
+                        ?>
+                        <div class="text-center">
+                            <form class="mx-2 my-1" method="POST">
+                                <input type="hidden" name="hide" id="hide" value="<?php echo $row['email'] ?>" />
+                                <button name="accept" value="accept" style="width:45%" class="btn btn-new" disabled>Accepted
+                                    Registrations :
+                                    <?php echo $t ?>
+                                </button>
+                                <button name="accept" value="accept" style="width:45%" class="btn btn-new" disabled>Rejected
+                                    Registrations :
+                                    <?php echo $a ?>
+                                </button>
+                                <button name="accept" value="accept" style="width:45%" class="btn btn-new my-1"
+                                    disabled>Total Registrations : <?php echo $r ?></button>
+                            </form>
                         </div>
                     </div>
                 </div>
-            <?php } ?>
-        </div>
+            </div>
+        <?php } ?>
     </div>
-    </div>
-    </div>
+
 
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>

@@ -34,7 +34,7 @@ if ($RES = mysqli_fetch_array($findresult)) {
     <div class="vertical-nav bg-white" style="background-color: #f9f9f9 !important;" id="sidebar">
         <div class="py-4 px-3 mb-4 bg-light">
             <div class="mediaicon d-flex align-items-center">
-                <img style="width: 130px;height: 130px;border-radius: 50%;object-fit: cover;"
+                <img style="width: 140px;height: 140px;border-radius: 50%;object-fit: cover;"
                     src="../profiles/<?php echo $img; ?>" class="iconimg mr-3 rounded-circle img-thumbnail shaadow-sm">
                 <div class="media-body">
                     <h4 class="m-0">Admin</h4>
@@ -54,18 +54,17 @@ if ($RES = mysqli_fetch_array($findresult)) {
                     Events DashBoard
                 </a>
             </li>
-
             <li class="nav-item">
-                <a href="regusers.php" class="nav-link text-dark bg-light">
+                <a href="adreq.php" class="nav-link text-dark bg-light">
                     <i class="fas fa-address-card mr-3 text-primary fa-fw"></i>
-                    Registered Users
+                    Admin Requests
                 </a>
             </li>
 
             <li class="nav-item">
                 <a href="acceptedusers.php" class="nav-link text-dark bg-light">
                     <i class="fas fa-user mr-3 text-primary fa-fw"></i>
-                    Accepted Users
+                    Current Admins
                 </a>
             </li>
 
@@ -73,8 +72,15 @@ if ($RES = mysqli_fetch_array($findresult)) {
                 <li class="nav-item">
                     <a href="addevents.php" class="nav-link text-dark bg-light">
                         <i class="fas fa-plus mr-3 text-primary fa-fw"></i>
-                        Add/delete Events
-                    </a> 
+                        Add Events
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="myprofile.php" class="nav-link text-dark bg-light">
+                        <i class="fas fa-user mr-3 text-primary fa-fw"></i>
+                        Your Profile
+                    </a>
                 </li>
 
                 <li class="nav-item">
@@ -85,24 +91,57 @@ if ($RES = mysqli_fetch_array($findresult)) {
                 </li>
             </ul>
     </div>
-    
+
     <div class="page-content p-5" id="content">
         <button id="sidebarCollapse" type="button" class="btn btn-light bg-white rounded-pill shadow-sm px-4 mb-4"><i
                 class="fa fa-bars mr-2"></i><small class="text-uppercase font-weight-bold">Menu</small></button>
         <h2 class="display-4 text-white">Events DashBoard</h2>
         <br>
+        <?php if (isset($_POST['plus'])) {
+            header("location:addevents.php");
+        }
+
+        if (isset($_POST['del'])) {
+            $eid = $_POST['hide'];
+            $tobi = mysqli_query($dbc, "SELECT * FROM Events where id = '$eid'");
+            $tow = mysqli_fetch_array($tobi);
+            $ename = $tow['name'];
+            $description = $tow['description'];
+            $date = $tow['date'];
+            $img = $tow['img'];
+            $ins = mysqli_query($dbc, "INSERT into deleted_events (id, name, description, date, img) values('$eid', '$ename', '$description', '$date', '$img')");
+            if ($ins) {
+                $dels = mysqli_query($dbc, "DELETE from Events where id='$eid'");
+            }
+        } ?>
+        <div style="text-align: right;">
+            <form method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="hide" id="hide" value="<?php echo $row['id'] ?>" />
+                <button name="plus" class="plus btn btn-new my-2"><i class="fa fa-plus"></i> Add Events</button>
+                <br>
+            </form>
+        </div>
         <!-- Query to retrieve all the events open -->
         <?php $query = "SELECT * FROM Events";
         $query_run = mysqli_query($dbc, $query);
+
         if (mysqli_num_rows($query_run) > 0) { ?>
             <div class="container">
                 <div class="row gy-4">
-                    <?php foreach ($query_run as $row) { ?>
+                    <?php foreach ($query_run as $row) {
+                        ?>
                         <!-- Displaying all the retrieved events -->
                         <?php $sub = $row['id']; ?>
-                        <div class="col-sm">
+                        <div class="col-sm-6 col-lg-3 py-4 my-1">
+                            <div style="text-align: right;">
+                                <form method="POST" enctype="multipart/form-data">
+                                    <input type="hidden" name="hide" id="hide" value="<?php echo $row['id'] ?>" />
+                                    <button name="del" class="del btn btn-new my-2"><i class="fa fa-trash"></i></button>
+                                    <br>
+                                </form>
+                            </div>
                             <a href="eventdetails.php?sub=<?php echo $sub ?>" style=" text-decoration: none; color:#121123">
-                                <div class="card  h-100">
+                                <div class="card h-100">
                                     <img style="height:35%" src="uploads/<?php echo $row['img']; ?>" class="card-img-top"
                                         alt="...">
                                     <div class="card-body">
@@ -110,12 +149,22 @@ if ($RES = mysqli_fetch_array($findresult)) {
                                             <?php echo $row['name']; ?>
                                         </h4>
                                         <p class="card-text">
-                                            <?php echo $row['description']; ?>
+                                            <?php $text = substr($row['description'], 0, 70) . '...';
+                                            echo $text; ?>
                                         </p>
+                                        <h5 class="card-title" style="color:#7d54a4">
+                                            Event Date :
+                                            <?php echo $row['date']; ?>
+                                        </h5>
+                                        <div class="text-center">
+                                            <button name="reg" class="btn btn-new btn-block" class="py-2"> View registrations
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                         </div></a>
                         <br>
+
                     <?php } ?>
                 </div>
             </div>

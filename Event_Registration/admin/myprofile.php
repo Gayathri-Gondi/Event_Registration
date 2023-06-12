@@ -1,6 +1,8 @@
+<!-- still in working -->
+
+
 <!DOCTYPE html>
 <?php require_once("../connection.php");
-//session used for users to stay logged in until log out
 if (!isset($_SESSION["login_sess"])) {
     header("location:../userlogin.php");
 }
@@ -27,6 +29,13 @@ if ($RES = mysqli_fetch_array($findresult)) {
     <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:ital,wght@0,300;1,300&display=swap"
         rel="stylesheet">
+
+    <style>
+        .card-horizontal {
+            display: flex;
+            flex: 1 1 auto;
+        }
+    </style>
 </head>
 
 <body>
@@ -91,56 +100,71 @@ if ($RES = mysqli_fetch_array($findresult)) {
                 </li>
             </ul>
     </div>
+    <?php
+    if (isset($_POST['edit'])) {
+        header("location:editprofile.php");
+    }
+    ?>
     <div class="page-content p-5" id="content">
         <button id="sidebarCollapse" type="button" class="btn btn-light bg-white rounded-pill shadow-sm px-4 mb-4"><i
                 class="fa fa-bars mr-2"></i><small class="text-uppercase font-weight-bold">Menu</small></button>
-        <h2 class="display-4 text-white">Add Events</h2>
-
-        <section style="padding-top:30px">
-            <div class="w-50   text-white">
+        <h2 class="display-4 text-white">Your Profile</h2>
+        <br>
+        <div class="container">
+            <div class="col">
                 <?php
-                //inserting all the event details into database if button is pressed
-                if (isset($_POST["adde"])) {
-                    extract($_POST);
-                    $pfp = time() . '_' . $_FILES["img"]["name"];
-                    $target = 'uploads/' . $pfp;
-                    if (!empty($_POST['description'])) {
-                        $Result = mysqli_query($dbc, "INSERT into Events (id, name, description, date, img) values(NULL, '$ename', '$description', '$date', '$pfp')");
+                $Result = mysqli_query($dbc, "SELECT * FROM Users where email= '$email'");
+                if ($row = mysqli_fetch_array($Result)) { ?>
+                    <div class="row" style="width:100%; height:50%">
+                        <div class="col-12 mt-3" style="width:100%; height:50%">
+                            <div class="card">
+                                <div class="card-horizontal">
+                                    <div class="img-square-wrapper">
+                                        <img class="iconimg mr-3 rounded-circle img-thumbnail shaadow-sm my-1 mx-1"
+                                            style="width: 120px;border-radius: 50%;height: 120px;object-fit: cover;"
+                                            class="" src="../profiles/<?php echo $row['img']; ?>" alt="Card image cap">
+                                            
+                                    </div>
+                                    <div class="card-body">
 
-                        if (!$Result) {
-                            printf("Errormessage: %s\n", mysqli_error($dbc));
-                        } else {
-                            copy($_FILES['img']["tmp_name"], $target);
-                            echo 'added successfully';
-                        }
-                    }
-                }
-                ?>
-                <!-- Form to get event details -->
-                <form action="" method="POST" enctype="multipart/form-data">
-                    <div class="form-group">
-                        <label> Event Name : </label>
-                        <input type="text" name="ename" value="" class="form-control" required>
+                                        <h4 class="card-title">
+                                            <?php echo $row['fname'], " ", $row['lname']; ?>
+                                        </h4>
+                                        <p class="card-text">
+                                            <?php echo "Email : " . $row['email']; ?>
+                                        </p>
+                                        <p class="card-text">
+                                            <?php echo "Contact Number : " . $row['number']; ?>
+                                        </p>
+                                        <?php
+                                        $bday = new DateTime($row['dob']); // Your date of birth
+                                        $today = new Datetime(date('y.m.d'));
+                                        $diff = $today->diff($bday);
+                                        ?>
+                                        <p class="card-text">
+                                            <?php echo "Date Of Birth : " . $row['dob']; ?>
+                                        </p>
+                                        <p class="card-text">
+                                            <?php echo "Age : " . $diff->y; ?>
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="text-center">
+                                    <form class="mx-2 my-1" method="POST">
+                                        <input type="hidden" name="hide" id="hide" value="<?php echo $row['email'] ?>" />
+                                        <button name="edit" value="edit" style="width:45%" class="btn btn-new my-1"
+                                            >Edit Details</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label> Description : </label>
-                        <textarea name="description" class="form-control" required></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label> Date Of Event : </label>
-                        <input type="date" name="date" value="" class="form-control" required>
-                    </div>
-                    <div class="form-group">
-                        <label> Upload Image If Any : </label>
-                        <input type="file" name="img" value="" class="form-control">
-                    </div>
-                    <div class="text-center">
-                        <button name="adde" class="btn btn-new btn-block" class="py-2"> Add </button>
-                    </div>
-                </form>
+                <?php } ?>
             </div>
-        </section>
+        </div>
     </div>
+
+
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
