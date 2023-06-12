@@ -1,8 +1,6 @@
-<!-- still in working -->
-
-
 <!DOCTYPE html>
-<?php require_once("../connection.php");
+<?php require_once("../connection.php"); ?>
+<?php
 if (!isset($_SESSION["login_sess"])) {
     header("location:../userlogin.php");
 }
@@ -12,10 +10,78 @@ if ($RES = mysqli_fetch_array($findresult)) {
     $fname = $RES['fname'];
     $lname = $RES['lname'];
     $email = $RES['email'];
-    $img = $RES['img'];
+    $pimg = $RES['img'];
+    $num = $RES['number'];
+    $uid = $RES['id'];
 }
 ?>
 <html>
+<?php
+//validating the form data
+if (isset($_POST['edit'])) {
+    extract($_POST);
+    if (strlen($efname) < 3) {
+        $error[] = 'Please Enter Atleast 3 Characters for First Name';
+    }
+    if (strlen($efname) > 20) {
+        $error[] = 'First Name : Maximum Limit Reached, Please Enter Name with length less Than 20';
+    }
+    if (!preg_match("/^[A-Za-z _]*[A-Za-z ]+[A-Za-z _]*$/", $efname)) {
+        $error[] = 'Invalid Entery, First Name Should not contain Digit or Special Characters';
+    }
+    extract($_POST);
+    if (strlen($elname) < 3) {
+        $error[] = 'Please Enter Atleast 3 Characters for Last Name';
+    }
+    if (strlen($elname) > 20) {
+        $error[] = 'First Name : Maximum Limit Reached, Please Enter Name with length less Than 20';
+    }
+    if (!preg_match("/^[A-Za-z _]*[A-Za-z ]+[A-Za-z _]*$/", $elname)) {
+        $error[] = 'Invalid Entery, Last Name Should not contain Digit or Special Characters';
+    }
+    if (strlen($eemail) > 50) {
+        $error[] = 'Email : Maximum Limit Reached, Please Enter the mail ID with length less Than 50';
+    }
+
+    $sql = "select * from Users where id!='$uid' and number = '$num' and email = '$email';";
+    $res = mysqli_query($dbc, $sql);
+    if (mysqli_num_rows($res) > 0) {
+        $row = mysqli_fetch_assoc($res);
+        if ($number == $row['number']) {
+            $error[] = 'Error! Number Already Registered';
+        }
+        if ($email == $row['email']) {
+            $error[] = 'Error! Email Already Exists';
+        }
+    }
+    //inserting register form details onto datbase if no errors 
+    if (!isset($error)) {
+        extract($_POST);
+
+        if (!empty($_FILES["img"]["name"])) {
+            $pfp = time() . '_' . $_FILES["img"]["name"];
+            $target = '../profiles/' . $pfp;
+            copy($_FILES["img"]["tmp_name"], $target);
+            unlink("../profiles/<?php echo $pimg; ?>");
+            $Result = mysqli_query($dbc, "UPDATE Users SET fname='$efname', lname='$elname', number='$ecnum', img='$pfp' WHERE number = '$num'");
+            if ($Result) {
+                header("location:profiledetails.php");
+            } else {
+                $error[] = 'Failed! Something went wrong here';
+                echo $efname, $elname, $eemail, $ecnum;
+            }
+        } else {
+            $Result = mysqli_query($dbc, "UPDATE Users SET fname='$efname', lname='$elname', number='$ecnum' WHERE number = '$num'");
+            if ($Result) {
+                header("location:profiledetails.php");
+            } else {
+                $error[] = 'Failed! Something went wrong';
+                echo mysqli_error($dbc);
+            }
+        }
+    }
+}
+?>
 
 <head>
     <title>Event registration</title>
@@ -44,7 +110,7 @@ if ($RES = mysqli_fetch_array($findresult)) {
         <div class="py-4 px-3 mb-4 bg-light">
             <div class="mediaicon d-flex align-items-center">
                 <img style="width: 130px;height: 130px;border-radius: 50%;object-fit: cover;"
-                    src="../profiles/<?php echo $img; ?>" class="iconimg mr-3 rounded-circle img-thumbnail shaadow-sm">
+                    src="../profiles/<?php echo $pimg; ?>" class="iconimg mr-3 rounded-circle img-thumbnail shaadow-sm">
                 <div class="media-body" style="word-break: break-all;">
                     <h5 class="m-0">
                         <?php echo $fname ?>
@@ -90,11 +156,6 @@ if ($RES = mysqli_fetch_array($findresult)) {
                 </li>
             </ul>
     </div>
-    <?php
-    if (isset($_POST['edit'])) {
-        header("location:editprofile.php");
-    }
-    ?>
     <div class="page-content p-5" id="content">
         <button id="sidebarCollapse" type="button" class="btn btn-light bg-white rounded-pill shadow-sm px-4 mb-4"><i
                 class="fa fa-bars mr-2"></i><small class="text-uppercase font-weight-bold">Menu</small></button>
@@ -113,38 +174,40 @@ if ($RES = mysqli_fetch_array($findresult)) {
                                         <img class="iconimg mr-3 rounded-circle img-thumbnail shaadow-sm my-1 mx-1"
                                             style="width: 120px;border-radius: 50%;height: 120px;object-fit: cover;"
                                             class="" src="../profiles/<?php echo $row['img']; ?>" alt="Card image cap">
-
                                     </div>
                                     <div class="card-body">
-
-                                        <h4 class="card-title">
-                                            <?php echo $row['fname'], " ", $row['lname']; ?>
-                                        </h4>
-                                        <p class="card-text">
-                                            <?php echo "Email : " . $row['email']; ?>
-                                        </p>
-                                        <p class="card-text">
-                                            <?php echo "Contact Number : " . $row['number']; ?>
-                                        </p>
-                                        <?php
-                                        $bday = new DateTime($row['dob']); // Your date of birth
-                                        $today = new Datetime(date('y.m.d'));
-                                        $diff = $today->diff($bday);
-                                        ?>
-                                        <p class="card-text">
-                                            <?php echo "Date Of Birth : " . $row['dob']; ?>
-                                        </p>
-                                        <p class="card-text">
-                                            <?php echo "Age : " . $diff->y; ?>
-                                        </p>
+                                        <form action="" method="POST" enctype="multipart/form-data">
+                                            <div class="form-group">
+                                                <label> First Name : </label>
+                                                <input type="text" name="efname" class="form-control" value="<?php
+                                                echo $row['fname']; ?>" required>
+                                            </div>
+                                            <div class="form-group">
+                                                <label> Last Name : </label>
+                                                <input type="text" name="elname" class="form-control" value="<?php
+                                                echo $row['lname']; ?>" required>
+                                            </div>
+                                            <div class="form-group">
+                                                <label> Email : </label>
+                                                <input type="text" name="eemail" class="form-control" value="<?php
+                                                echo $row['email']; ?>" disabled>
+                                            </div>
+                                            <div class="form-group">
+                                                <label> Contact Number : </label>
+                                                <input type="text" name="ecnum" class="form-control" value="<?php
+                                                echo $row['number']; ?>" required>
+                                            </div>
+                                            <button name="img" style="width:45%"  class="del btn btn-new my-2"><i
+                                                    class="fa fa-camera"> <input name="img" type="file" /></i></button>
+                                            <button name="rpw" style="width:45%" class="del btn btn-new my-2"><i
+                                                    class="fa fa-key"></i> Change Password</button>
+                                            <div class="text-center py-3">
+                                                <button name="edit" style="width:100%" class="edit btn btn-new my-2">Save
+                                                    Changes</button>
+                                            </div>
+                                        </form>
                                     </div>
-                                </div>
-                                <div class="text-center">
-                                    <form class="mx-2 my-1" method="POST">
-                                        <input type="hidden" name="hide" id="hide" value="<?php echo $row['email'] ?>" />
-                                        <button name="edit" value="edit" style="width:45%" class="btn btn-new my-1">Edit
-                                            Details</button>
-                                    </form>
+
                                 </div>
                             </div>
                         </div>

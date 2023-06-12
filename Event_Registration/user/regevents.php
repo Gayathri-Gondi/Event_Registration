@@ -65,7 +65,7 @@ if ($RES = mysqli_fetch_array($findresult)) {
             </li>
 
             <li class="nav-item">
-                <a href="acceptedusers.php" class="nav-link text-dark bg-light">
+                <a href="profiledetails.php" class="nav-link text-dark bg-light">
                     <i class="fas fa-user mr-3 text-primary fa-fw"></i>
                     Profile
                 </a>
@@ -87,31 +87,36 @@ if ($RES = mysqli_fetch_array($findresult)) {
         
         <br>
         <!-- retrieving and displaying user registered events -->
-        <?php $query = "SELECT * FROM Events where id in (SELECT eid FROM registered_users where email='$email')";
+        <?php $query = "SELECT * FROM Events where id in (SELECT eid FROM registered_users where email='$email'  and email not in (SELECT email from accepted where accepted.eid = registered_users.eid)) ";
         $query_run = mysqli_query($dbc, $query);
 
-        if (mysqli_num_rows($query_run) > 0) { ?>
+        if (mysqli_num_rows($query_run) > 0) {
+            $c = 1;
+            ?>
+        
         <h2 class="display-4 text-white">Registered Events</h2>
             <div class="container">
                 <div class="row gy-4">
                     <?php foreach ($query_run as $row) { ?>
                         <?php $sub = $row['id']; ?>
-                        <div class="col-sm">
+                        <div class="col-sm-6 col-lg-3 py-2" >
                             <a href="eventdetails.php?sub=<?php echo $sub ?>" style=" text-decoration: none; color:#121123">
-                                <div class="card  h-80">
+                                <div class="card h-100" style="height:100%">
                                     <img style="height:35%" src="../admin/uploads/<?php echo $row['img']; ?>"
                                         class="card-img-top" alt="...">
-                                    <div class="card-body">
+                                    <div class="card-body" >
                                         <h4 class="card-title">
                                             <?php echo $row['name']; ?>
                                         </h4>
                                         <p class="card-text">
-                                            <?php echo $row['description']; ?>
-                                        </p>
+                                            <?php $text=substr($row['description'],0,70).'...';
+                                            echo $text; ?>
+                                        </p> 
                                         <h5 class="card-title" style="color:#7d54a4">
                                             Event Date :
                                             <?php echo $row['date']; ?>
                                         </h5>
+                                        <!-- Button for user to view more -->
                                         <div class="text-center">
                                             <button name="reg" class="btn btn-new btn-block" class="py-2"> View More </button>
                                         </div>
@@ -126,30 +131,34 @@ if ($RES = mysqli_fetch_array($findresult)) {
         <?php }
         $query = "SELECT * FROM Events where id in (SELECT eid FROM accepted where email='$email' and status='Accepted')";
         $query_run = mysqli_query($dbc, $query);
-        if(mysqli_num_rows($query_run) > 0){
+        if(mysqli_num_rows($query_run) > 0)
+            {
+            $c = 1;
         ?>
         <h2 class="display-4 text-white">Registration Accepted Events</h2>
             <div class="container">
                 <div class="row gy-4">
                     <?php foreach ($query_run as $row) { ?>
-        
+         
                         <?php $sub = $row['id']; ?>
-                        <div class="col-sm">
+                        <div class="col-sm-6 col-lg-3 py-2" >
                             <a href="eventdetails.php?sub=<?php echo $sub ?>" style=" text-decoration: none; color:#121123">
-                                <div class="card  h-80">
+                                <div class="card h-100" style="height:100%">
                                     <img style="height:35%" src="../admin/uploads/<?php echo $row['img']; ?>"
                                         class="card-img-top" alt="...">
-                                    <div class="card-body">
+                                    <div class="card-body" >
                                         <h4 class="card-title">
                                             <?php echo $row['name']; ?>
                                         </h4>
                                         <p class="card-text">
-                                            <?php echo $row['description']; ?>
-                                        </p>
+                                            <?php $text=substr($row['description'],0,70).'...';
+                                            echo $text; ?>
+                                        </p> 
                                         <h5 class="card-title" style="color:#7d54a4">
                                             Event Date :
                                             <?php echo $row['date']; ?>
                                         </h5>
+                                        <!-- Button for user to view more -->
                                         <div class="text-center">
                                             <button name="reg" class="btn btn-new btn-block" class="py-2"> View More </button>
                                         </div>
@@ -164,7 +173,9 @@ if ($RES = mysqli_fetch_array($findresult)) {
         <?php }
         $query = "SELECT * FROM Events where id in (SELECT eid FROM accepted where email='$email' and status='Rejected')";
         $query_run = mysqli_query($dbc, $query);
-        if(mysqli_num_rows($query_run) > 0){
+        if(mysqli_num_rows($query_run) > 0)
+        {
+            $c = 1;
         ?>
         <h2 class="display-4 text-white">Registration Rejected Events</h2>
             <div class="container">
@@ -172,22 +183,24 @@ if ($RES = mysqli_fetch_array($findresult)) {
                     <?php foreach ($query_run as $row) { ?>
         
                         <?php $sub = $row['id']; ?>
-                        <div class="col-sm">
+                        <div class="col-sm-6 col-lg-3 py-2" >
                             <a href="eventdetails.php?sub=<?php echo $sub ?>" style=" text-decoration: none; color:#121123">
-                                <div class="card  h-80">
+                                <div class="card h-100" style="height:100%">
                                     <img style="height:35%" src="../admin/uploads/<?php echo $row['img']; ?>"
                                         class="card-img-top" alt="...">
-                                    <div class="card-body">
+                                    <div class="card-body" >
                                         <h4 class="card-title">
                                             <?php echo $row['name']; ?>
                                         </h4>
                                         <p class="card-text">
-                                            <?php echo $row['description']; ?>
-                                        </p>
+                                            <?php $text=substr($row['description'],0,70).'...';
+                                            echo $text; ?>
+                                        </p> 
                                         <h5 class="card-title" style="color:#7d54a4">
                                             Event Date :
                                             <?php echo $row['date']; ?>
                                         </h5>
+                                        <!-- Button for user to view more -->
                                         <div class="text-center">
                                             <button name="reg" class="btn btn-new btn-block" class="py-2"> View More </button>
                                         </div>
@@ -197,7 +210,48 @@ if ($RES = mysqli_fetch_array($findresult)) {
                         <br>
                     <?php } ?>
                 </div>
-            </div> <?php } else{?>
+            </div> <?php } ?>
+            <!-- retrieving and displaying past events -->
+        <?php 
+        $query = "SELECT * FROM deleted_events where id in (SELECT eid FROM accepted where email='$email')";
+        $query_run = mysqli_query($dbc, $query);
+        if(mysqli_num_rows($query_run) > 0)
+        {
+            $c = 1;
+        ?>
+        <h2 class="display-4 text-white">Past Events</h2>
+            <div class="container">
+                <div class="row gy-4">
+                    <?php foreach ($query_run as $row) { ?>
+                        <?php $sub = $row['id']; ?>
+                        <div class="col-sm-6 col-lg-3 py-2" >
+                                <div class="card h-100" style="height:100%">
+                                    <img style="height:35%" src="../admin/uploads/<?php echo $row['img']; ?>"
+                                        class="card-img-top" alt="...">
+                                    <div class="card-body" >
+                                        <h4 class="card-title">
+                                            <?php echo $row['name']; ?>
+                                        </h4>
+                                        <p class="card-text">
+                                            <?php $text=substr($row['description'],0,70).'...';
+                                            echo $text; ?>
+                                        </p> 
+                                        <h5 class="card-title" style="color:#7d54a4">
+                                            Event Date :
+                                            <?php echo $row['date']; ?>
+                                        </h5>
+                                        <!-- Button for user to view more -->
+                                        <div class="text-center">
+                                            <button name="reg" class="btn btn-new btn-block" class="py-2" disabled> View More </button>
+                                        </div>
+                                    </div>
+                                </div>
+                        </div>
+                        <br>
+                    <?php } ?>
+                </div>
+            </div> <?php }
+             if($c!=1){?>
                 <h2 class="display-4 text-white">No Registered events</h2>
                 <?php } ?>
 

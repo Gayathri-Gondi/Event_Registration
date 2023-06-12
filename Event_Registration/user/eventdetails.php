@@ -12,6 +12,7 @@ if ($RES = mysqli_fetch_array($findresult)) {
     $email = $RES['email'];
     $img = $RES['img'];
 }
+
 ?>
 <?php
 //getting the event id from account.php to print details of the clicked event
@@ -74,7 +75,7 @@ $sub = $_GET['sub']; ?>
             </li>
 
             <li class="nav-item">
-                <a href="acceptedusers.php" class="nav-link text-dark bg-light">
+                <a href="profiledetails.php" class="nav-link text-dark bg-light">
                     <i class="fas fa-user mr-3 text-primary fa-fw"></i>
                     Profile
                 </a>
@@ -92,8 +93,13 @@ $sub = $_GET['sub']; ?>
     </div>
     <?php
     //when button is submitted user gets registered, that added into database
-    if (isset($_POST['reg'])) {
+    /*if (isset($_POST['reg'])) {
         $Result = mysqli_query($dbc, "INSERT into registered_users (id, email, eid) values(NULL, '$email', '$sub')");
+    $subject = 'Registration Successful';
+    $message = "You have success";
+
+    mail($email, $subject, $message);
+
     }
     if ($Result) {
         $done = 2;
@@ -102,7 +108,7 @@ $sub = $_GET['sub']; ?>
 
         header("refresh");
     }
-    ?>
+    */?>
     <div class="page-content p-5" id="content">
         <button id="sidebarCollapse" type="button" class="btn btn-light bg-white rounded-pill shadow-sm px-4 mb-4"><i
                 class="fa fa-bars mr-2"></i><small class="text-uppercase font-weight-bold">Menu</small></button>
@@ -110,87 +116,117 @@ $sub = $_GET['sub']; ?>
         <br>
         <div class="container">
             <div class="row gy-4">
-                <?php
-                //Retreiving and displaying event details
-                $Result = mysqli_query($dbc, "SELECT * FROM Events where id = {$sub}");
-                if ($row = mysqli_fetch_array($Result)) { ?>
-                    <?php $sub = $row['id']; ?>
-                    <div class="card  h-100" style="height:45%; width:50%">
-                        <img style="height:35%;" src="../admin/uploads/<?php echo $row['img']; ?>" class="card-img-top"
-                            alt="...">
-                        <div class="card-body">
-                            <h4 class="card-title">
-                                <?php echo $row['name']; ?>
-                            </h4>
-                            <p class="card-text">
-                                <?php echo $row['description']; ?>
-                            </p>
-                            <h5 class="card-title" style="color:#7d54a4">
-                                Event Date :
-                                <?php echo $row['date']; ?>
-                            </h5>
-                            <form method="POST">
-                                <?php
-                                //disabling button if user already registered or accepted or got rejected
-                                $Result = mysqli_query($dbc, "SELECT * FROM registered_users where eid = {$sub} and email = '$email'");
-                                $row = mysqli_fetch_array($Result);
-                                $resu = mysqli_query($dbc, "SELECT * FROM accepted where eid = {$sub} and email = '$email'");
-                                $rows = mysqli_fetch_array($resu);
-                                if ($row > 0 or $rows > 0) {
-                                    if ($rows > 0) { ?>
-                                        <div class="text-center">
-                                            <button name="reg" class="btn btn-new btn-block" class="py-2" disabled>
-                                                <?php echo $rows['status']; ?>
-                                            </button>
-                                        </div>
-                                    <?php } else { ?>
-                                        <div class="text-center">
-                                            <button name="reg" class="btn btn-new btn-block" class="py-2" disabled> Registered
-                                            </button>
-                                        </div>
-                                    <?php } ?>
-                                </form>
-                            <?php } else { ?>
-                                <div class="text-center">
-                                    <button name="reg" class="btn btn-new btn-block" class="py-2"> register </button>
-                                </div>
-                            <?php } ?>
-                            </form>
-                        </div>
-                    </div>
-
                 <div class="col">
                     <?php
-                    //counting total number of registration including accepted
-                    $Result = mysqli_query($dbc, "SELECT count('1') FROM Registered_users where eid = '$sub'");
-                    $row = mysqli_fetch_array($Result);
-                    $ros = mysqli_query($dbc, "SELECT count('1') FROM accepted where eid = '$sub'");
-                    $ro = mysqli_fetch_array($ros);
-                    $t = $ro[0] + $row[0];
-                    ?>
-                    <div class="row" style="height:50px">
-                        <div class="col-12 mt-3">
-                            <div class="card">
-                                <div class="card-horizontal">
-                                    <div class="img-square-wrapper">
-                                        <img style="width: 120px;height: 120px;object-fit: cover;" class=""
-                                            src="../profiles/profile.png" alt="Card image cap">
-                                    </div>
-                                    <div class="card-body">
+                    //Retreiving and displaying event details
+                    $Result = mysqli_query($dbc, "SELECT * FROM Events where id = {$sub}");
+                    if ($row = mysqli_fetch_array($Result)) { ?>
+                        <?php $sub = $row['id'];
+                        $title = $row['name'] ?>
+                        <?php
+                        //disabling button if user already registered or accepted or got rejected
+                        $tobi = mysqli_query($dbc, "SELECT * FROM registered_users where eid = {$sub} and email = '$email'");
+                        $tow = mysqli_fetch_array($tobi);
+                        $tesu = mysqli_query($dbc, "SELECT * FROM accepted where eid = {$sub} and email = '$email'");
+                        $tows = mysqli_fetch_array($tesu);
+                        if ($tow > 0 or $tows > 0) { ?>
+                            <a class="dis" href="#" style=" text-decoration: none; color:#121123">
+                            <?php } else { ?>
+                                <a class="dis" href="registerevent.php?sub=<?php echo $sub ?>"
+                                    style=" text-decoration: none; color:#121123"> <?php } ?>
+                                <?php
+                                if (isset($_POST['bck'])) {
+                                    header("location:account.php");
+                                } ?>
+                                <div style="text-align: right;">
+                                    <form method="POST" enctype="multipart/form-data">
+                                        <input type="hidden" name="hide" id="hide" value="<?php echo $row['id'] ?>" />
+                                        <button name="bck" class="bck btn btn-new my-2"><i class="fa fa-arrow-left"></i>
+                                            Back</button>
                                         <br>
-                                        <!-- displaying the count -->
-                                        <h4 class="card-title">
-                                            Total Registrations =
-                                            <?php echo $t; ?>
-                                        </h4>
-                                    </div>
+                                    </form>
                                 </div>
-                            </div> 
+                                <div class="card  h-100" style="height:45%; width:100%">
+                                    <img style="height:100%;" src="../admin/uploads/<?php echo $row['img']; ?>"
+                                        class="card-img-top" alt="...">
+                                    <div class="card-body">
+                                        <h4 class="card-title">
+                                            <?php echo $row['name']; ?>
+                                        </h4>
+                                        <p class="card-text">
+                                            <?php echo $row['description']; ?>
+                                        </p>
+                                        <h5 class="card-title" style="color:#7d54a4">
+                                            Event Date :
+                                            <?php echo $row['date']; ?>
+                                        </h5>
+                                        <form action="registerevent.php" method="POST">
+                                            <?php
+                                            //disabling button if user already registered or accepted or got rejected
+                                            $Result = mysqli_query($dbc, "SELECT * FROM registered_users where eid = {$sub} and useremail = '$email'");
+                                            $row = mysqli_fetch_array($Result);
+                                            $resu = mysqli_query($dbc, "SELECT * FROM accepted where eid = {$sub} and email = '$email'");
+                                            $rows = mysqli_fetch_array($resu);
+                                            if ($row > 0 or $rows > 0) {
+
+                                                if ($rows > 0) { ?>
+                                                    <div class="text-center">
+                                                        <button name="reg" class="btn btn-new btn-block" class="py-2" disabled>
+                                                            <?php echo $rows['status']; ?>
+                                                        </button>
+                                                    </div>
+                                                <?php } else { ?>
+                                                    <div class="text-center">
+                                                        <button name="reg" class="btn btn-new btn-block" class="py-2" disabled>
+                                                            Registered
+                                                        </button>
+                                                    </div>
+                                                <?php } ?>
+                                            </form>
+                                </a>
+                            <?php } else { ?>
+
+                                <div class="text-center">
+                                    <button name="reg" class="btn btn-new btn-block" value="<?php $sub ?>" class="py-2">
+                                        register </button>
+                                </div>
+                            </a>
+                        <?php } ?>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col">
+                <?php
+                //counting total number of registration including accepted
+                $Result = mysqli_query($dbc, "SELECT count('1') FROM Registered_users where eid = '$sub'");
+                $row = mysqli_fetch_array($Result);
+                $t = $row[0];
+                ?>
+                <div class="row" style="height:50px">
+                    <div class="col-12 mt-3">
+                        <div class="card">
+                            <div class="card-horizontal">
+                                <div class="img-square-wrapper">
+                                    <img style="width: 120px;height: 120px;object-fit: cover;" class=""
+                                        src="../profiles/profile.png" alt="Card image cap">
+                                </div>
+                                <div class="card-body">
+                                    <br>
+                                    <!-- displaying the count -->
+                                    <h4 class="card-title">
+                                        Total Registrations =
+                                        <?php echo $t; ?>
+                                    </h4>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            <?php } ?>
-        </div>
+            </div>
+        <?php } ?>
+    </div>
     </div>
     </div>
 

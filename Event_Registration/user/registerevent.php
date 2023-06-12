@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <?php require_once("../connection.php");
+include "mail.php";
 //session used for users to stay logged in until log out 
 if (!isset($_SESSION["login_sess"])) {
     header("location:../userlogin.php");
@@ -10,9 +11,12 @@ if ($RES = mysqli_fetch_array($findresult)) {
     $fname = $RES['fname'];
     $lname = $RES['lname'];
     $email = $RES['email'];
+    $number = $RES['number'];
     $img = $RES['img'];
 }
+$sub = $_GET['sub'];
 ?>
+
 <html>
 
 <head>
@@ -24,6 +28,8 @@ if ($RES = mysqli_fetch_array($findresult)) {
         integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
     <link rel="stylesheet" type="text/css" href="../css/sidebar.css">
     <link rel="stylesheet" type="text/css" href="../css/style.css">
+    <link rel="stylesheet" type="text/css" href="../css/register.css">
+
     <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:ital,wght@0,300;1,300&display=swap"
         rel="stylesheet">
@@ -85,47 +91,86 @@ if ($RES = mysqli_fetch_array($findresult)) {
         <button id="sidebarCollapse" type="button" class="btn btn-light bg-white rounded-pill shadow-sm px-4 mb-4"><i
                 class="fa fa-bars mr-2"></i><small class="text-uppercase font-weight-bold">Menu</small></button>
         <h2 class="display-4 text-white">Events DashBoard</h2>
-        <br>
-        <!-- Query to retrieve all the events open -->
-        <?php $query = "SELECT * FROM Events";
-        $query_run = mysqli_query($dbc, $query);
-
-        if (mysqli_num_rows($query_run) > 0) { ?>
-            <div class="container">
-                <div class="row gy-4 ">
-                    <?php foreach ($query_run as $row) { ?>
-                        <!-- Displaying all the retrieved events -->
-                        <?php $sub = $row['id']; ?>
-                        <div class="col-sm-6 col-lg-3 py-2" >
-                            <a href="eventdetails.php?sub=<?php echo $sub ?>" style=" text-decoration: none; color:#121123">
-                                <div class="card h-100">
-                                    <img style="height:35%" src="../admin/uploads/<?php echo $row['img']; ?>"
-                                        class="card-img-top" alt="...">
-                                    <div class="card-body" >
-                                        <h4 class="card-title">
-                                            <?php echo $row['name']; ?> 
-                                        </h4>
-                                        <p class="card-text">
-                                            <?php $text=substr($row['description'],0,70).'...';
-                                            echo $text; ?>
-                                        </p> 
-                                        <h5 class="card-title" style="color:#7d54a4">
-                                            Event Date :
-                                            <?php echo $row['date']; ?>
-                                        </h5>
-                                        <!-- Button for user to view more -->
-                                        <div class="text-center">
-                                            <button name="reg" class="btn btn-new btn-block" class="py-2"> View More </button>
-                                        </div>
-                                    </div>
-                                </div> 
-                        </div></a>
-                        <br>
-                    <?php } ?>
-                </div>
-            </div>
-        <?php }
+        <?php
+        //validating the form data
+        if (isset($_POST['reg'])) {
+            extract($_POST);
+            $dobo = $dob1;
+            $diff = (date('Y') - date('Y', strtotime($dobo)));
+            if ($diff >= '18') {
+                extract($_POST);
+                $Result = mysqli_query($dbc, "INSERT into registered_users(id, fname, lname,email,useremail, Phnom, dob, eid) values(NULL, '$fname1', '$lname1', '$email1', '$email' , '$number1','$dob1', '$sub')");
+                if ($Result) {
+                    $to = $email1;
+                    $subject = "Registration successful";
+                    $ro = mysqli_query($dbc, "SELECT * from Events where id = '$sub'");
+                    $rowse = mysqli_fetch_array($ro);
+                    $message = "You registered successfully for the event " . $rowse['name'] . " which is taking place on " . $rowse['date'] . ". Please await for admin approval regarding your attendance of the event. Thank you for registering";
+                    if (send_mail($to, $subject, $message)) {
+                        header("location:regevents.php");
+                    } else {
+                        header("location:account.php");
+                    }
+                    
+                    
+                } else {
+                    printf("Errormessage: %s\n", mysqli_error($dbc));
+                }
+            } else {
+                echo "age should be greater than 18";
+            }
+        }
         ?>
+        <br>
+        <div class="screen" style="height:420px">
+            <div class="screen__content">
+                <!-- form -->
+                <form method="POST" class="login" enctype="multipart/form-data">
+                    <div class="inlinefields">
+                        <div class="login__field ">
+                            <i class="login__icon fas fa-user"></i>
+                            <input name="fname1" type="text" class="login__input" placeholder="First Name" value="<?php
+                            echo $fname;
+                            ?>" required>
+                        </div>
+                        <div class="login__field">
+                            <i class="login__icon fas fa-user"></i>
+                            <input name="lname1" type="text" class="login__input" placeholder="Last Name" value="<?php
+                            echo $lname; ?>" required>
+                        </div>
+                    </div>
+                    <div class="login__field normalfield">
+                        <i class="login__icon fas  fa-envelope"></i>
+                        <input name="email1" type="email" class="login__input" placeholder="Email" value="<?php
+                        echo $email;
+                        ?>" required>
+                    </div>
+                    <div class="login__field normalfield">
+                        <i class="login__icon fas fa-phone"></i>
+                        <input name="number1" type="text" class="login__input" placeholder="Phone Number" value="<?php
+                        echo $number;
+                        ?>" required>
+                    </div>
+                    <div class="login__field ">
+                        <i class="login__icon fas fa-calendar"></i>
+                        <input style="color:#fff" name="dob1" type="date" class="login__input"
+                            placeholder="Date of Birth" required>
+                    </div>
+                    <br>
+
+                    <button name="reg" class="button login__submit text-center" style>
+                        <span class="button__text">Register</span>
+                        <i class="button__icon fas fa-chevron-right"></i>
+                    </button>
+                </form>
+            </div>
+            <div class="screen__background">
+                <span class="screen__background__shape screen__background__shape4"></span>
+                <span class="screen__background__shape screen__background__shape3"></span>
+                <span class="screen__background__shape screen__background__shape2"></span>
+                <span class="screen__background__shape screen__background__shape1"></span>
+            </div>
+        </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
